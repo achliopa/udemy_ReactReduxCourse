@@ -340,3 +340,58 @@ if(!video) {
 	* textitem (individual message)
 * Our app logic
 * each view uses different parts of state (data)
+
+## Section 4 - Managing App State with Redux
+
+### Lecture 40 - Reducers
+
+* we clone the boilerplsate project  and run `npm install in it and start it `npm start`
+* reducers are core concept in redux. it is a function that returns a piece of application state
+* we can have many reducers for each piece of state
+* for a book app we could have a list of books and the currently selected book each with each own reducer
+* in /reducers folder we add a new file 'reducer_books.js'
+* we implement a naive function as reducer returning an array of books
+* in reducrs/index.js we build the state by combinng reducers so we explicitly say that the books: element will come from booksReducer
+```
+const rootReducer = combineReducers({
+  books: BooksReducer
+});
+```
+* we import it `import booksReducer from './reducer_books';`
+
+### Lecture 41 - Containers: Connecting Redux to React
+
+* we try to use state in our app (view). 
+* in /componsnts we add a new react component file 'book-list.js' as a class component
+* we assume that books list will pass from redux state as a prop and use it to render a list of book names
+```
+export default class BookList extends Component {
+	renderList() {
+		return  this.props.books.map((book) => {
+			return (
+				<li key={book.title} className="list-group-item">{book.title}</li>
+			);
+		});
+	}
+
+	render() {
+		return (
+			<ul className="list-group col-sm-4">
+				{this.renderList()}
+			</ul>
+		);
+	}
+}
+```
+* we need to pass the redux state in react. we use react-redux lib for that. 
+* its installed so we import it
+* we also have to promote a react component to a container (smart component) with alink to redux state
+* usually we put containers in a separate folder from components. we move there book_list.js
+
+### Lecture 42 - Containers Continued
+
+* we turn a component to a container when is the most top level component that needs redux  state to show content. in our app book_list cares for books array and book_detail for the selected book
+
+### Lecture 43 - implementation of a Container Class
+
+* 
