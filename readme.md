@@ -92,4 +92,113 @@ const App = function() {
 
 ### Lecture 15 - Export Statements
 
+* we implement the search bar component in search_bar.js in its simplest form
+```
+const SearchBar = () => {
+	return <input />;
+}
+```
+
+* we import React even if we dont use it as it is needed to compile jsx
+* react components can render other components but need a reference
+* so we use import/export mech in ES6 flavor `export default SearchBar;`
+* we import it in index.js and use it in JSX as <SearchBar />
+
+### Lecture 16 - Class-Based Components
+
+* class base components can have state
+* SearchBar is a functional stateless component but we need history and state. we ll make it a class based component. the equivalent is
+```
+class SearchBar extends React.Component {
+	render() {
+		return <input />;
+	}
+}
+```
+* class component must return jsx from a render() method
+
+### Lecture 17 - Handling User Events
+
+* events happen in UI
+* we write an event handler onInputChange(event) and call it ofr onChange DOM even `<input onChange={this.onInputChange} />`
+* JS in JSX? use {}
+* event handler is triggered when event occurs
+* in event handler we can pass a literal function `<input onChange={event => console.log(event.target.value))} />`. in this way because we use arrow function we dont have to bind this to the handler
+
+### Lecture 18 - Introduction to State
+
+* each class component has its state object
+* to use it we need to initialize it
+* the old style ES6 to do it, is through a constructor
+```
+	constructor(props) {
+		super(preops);
+
+		this.state = {term: ''};
+	}
+```
+* constructor gets called when we instantiate a component
+
+### Lecture 19 - More on State
+
+* when we set state we use `this.setState({term: event.target.value});`
+* we use state in JSX as this.state.term. it updates ont he fly (rerenders)
+```
+	render() {
+		return (
+			<div>
+				<input onChange={this.onInputChange} />
+				Value of input: {this.state.term}
+			</div>
+		);
+	}
+```
+
+### Lecture 20 - Controlled Components
+
+* a controlled field is a field whose value is controlled by the state
+* when input changes it changes the state
+* but the state should tell input what value it should have
+```
+				<input
+					value={this.state.term} 
+					onChange={event => this.setState({term: event.target.value})} 
+				/>
+```
+* input is now a controlled component. its value changes when state changes
+
+### Lecture 21
+
+## Section 2 - Ajax Requests with React
+
+### Lecture 22 - Youtube Search Response
+
+* rewact uses downward flow for distributing information  through the app. so the parent component fetches information and flows it in the chiold components using props
+* index.js hosts our parrent component
+* we import the module `import YTSearch from 'youtube-api-search';`
+* the call using the lib to do search is easy search object and then callback, here in ES5 style
+```
+YTSearch({ key: API_KEY, term: 'surfboards'}, function(data) {
+	console.log(data);
+});
+```
+* we get back a list of search results from youtube
+
+### Lecture 23 - Refactoring Functional Components to Class Components
+
+* we want to keep track of search results . this means state so we make our base component class based
+* we want to put the results of the search to state. we initialize state ES6 style `this.state = { videos: [] };`
+* we put search call in component puting results in state. and call it in the constructor
+
+### Lecture 24 - Props
+
+* we flesh out the video_list component as functional stateless
+* we ll use bootstrap styling as it is included as a stylesheet in index.html
+* in JSX instead of class we use className
+* we import the component and add it to render
+* to pass data in it from parent we use props `<VideoList videos={this.state.videos} />`
+* props are passed as argument in functional cvomponents and as an object in class components
+
+### Lecture 25 - Building Lists with maps
+
 * 
