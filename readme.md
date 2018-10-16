@@ -201,4 +201,142 @@ YTSearch({ key: API_KEY, term: 'surfboards'}, function(data) {
 
 ### Lecture 25 - Building Lists with maps
 
-* 
+* we will loop over the video data array and for each item we will create one ul element
+* we use map to iterate in the array
+* we implement a dummy VideoListItem component to render in map
+```
+const VideoList = (props) => {
+	const videoItems = props.videos.map((video) => {
+		return <VideoListItem video={video} />;
+	});
+
+	return (
+		<ul className="col-md-4 list-group">
+			{videoItems}
+		</ul>
+	);
+};
+```
+
+### Lecture 26 - List item keys
+
+* whenever we render a list in JSX from array  we need to pass a key prop (usually index)
+* key is used by react to update individual items (gain speed)
+* in our app we will use the etag of video as key `return <VideoListItem key={video.etag} video={video} />;`
+
+### Lecture 27 - VideoListItems
+
+* we work on video list item
+* we can do object destructuring on props argument to save on assignemnts
+* we console log video object to see the contents
+* we add markup in jsx of videolistitem and styling to prepare for filling it with video properties
+
+### Lecture 28 - Detail Component and Template Strings
+
+* when we create a component we care if it will have state. our video detail will use an embedded player and only video info passed as props
+* we add markup and an iframe for embedded video
+* to embedd youtube video we need the url
+```
+	const videoId = video.id.videoId;
+	const url = `https://www.youtube.com/embed/${videoId}`;
+```
+* we pass the url as src to iframe
+
+### Lecture 29 - Handling Null props
+
+* we import video-detail in index.js add it to jsx and pass in as prop the first video returned by the search.
+* we cannot render and get a null error. this is because the state is initialized empty. till we populate the list with the async request the page renders empty (null)
+* we need react lifecycle methods
+* as a wrokaround we add if logic int he video detail render function
+```
+if(!video) {
+		return <div>Loading...</div>
+	}
+```
+
+### Lecture 30 - Video Selection
+
+* we will add the concept of selected video in app component state. this will be passed in video detail component. 
+* we initialize it null and give it a default val when our api request returns...
+* we will now implement a callback that will be passed from parent component to child so that we canuse it to select a video
+* each state change causes rerender (only for what is changed) `onVideoSelect={selectedVideo  =>  this.setState({selectedVideo})}`
+* we pass it through video list to videolistitem as prop `onVideoSelect={props.onVideoSelect}`
+* in video list item we finally call the callback inside the onClick event handler `<li onClick={() => onVideoSelect(video)} className="list-group-item">`
+* passing callbacks works in shallow tree struct . more than 2 levels it becomes problematic to debug
+
+### Lecture 31 - Styling with CSS
+
+* we add styling in /style/style.css
+
+### Lecture 32 - Searching for Videos
+
+* we will follow a similar pattern with selectedVideo for the searchBar using a callback
+* when we use the searchbar we will setstate
+* we implement the callback at toplevel moving in the ytsearch
+```
+	videoSearch(term) {
+		YTSearch({ key: API_KEY, term}, (videos) => {
+			this.setState({
+				videos,
+				selectedVideo: videos[0]
+			});
+		});
+	}
+```
+* we pass it as prop to SearchBar `<SearchBar onSearchTermChange={term => this.videoSearch(term)}/>`
+* in search bar we make an empty hangdler where we call the callback
+```
+	onInputChange(term) {
+		this.setState({term});
+		this.props.onSearchTermChange(term);
+	}
+```
+* in Jsx we call the handler on the event `onChange={event => this.onInputChange(event.target.value)} `
+* now we search in every keustroke. we want to delete that
+
+### Lecture 33 - Throttling Search Term Input
+
+* we wwill use lodash and use a function to throttle how fast a function runs
+* we install it `npm install --save lodash` and import it `import _ from 'lodash';`
+* we ll use it to pass a debounced method on callback `const videoSearch = _.debounce((term) => {this.videoSearch(term)}, 300);`
+* we pas sthis in component `<SearchBar onSearchTermChange={videoSearch}/>`
+
+### Lecture 34 - React Wrapup
+
+* callbacks are used when we dont use redux. redux replaces them
+* react state is component based
+
+## Section 3 - Modeling Application State
+
+### Lecture 36 - What is Redux
+
+* app container for js apps
+* traditional MVC puts a  lot in C part while keeping M and V clean
+* redux makes C predictable and clean making better app
+
+### Lecture 37 - More on Redux
+
+* Redux is the Data - React is the View. our app is the C
+* redux is a state container of the app. it contains all the data. also has meta level properties of the data
+* all data has all data in an object called state
+* in a counter app reux keeps track of the counter
+
+### Lecture 38 - Even More on Redux
+
+* the most important in a redux app is how to design the app state
+* tinder is a good example for redux 
+* the tinder model is as follows:
+* Data contained in the application: 
+	* users (images and chat logs)
+	* list of current users with a conversation
+	* list of users to be reviewed
+	* currently viewed conversation
+	* currently viewed user for image swiping
+* Views contained in the app
+	* Image card
+	* conversationList (list of open conversations
+	* textlist (list of conv chat messages))
+	* like/dislike buttons
+	* textitem (individual message)
+* Our app logic
+* each view uses different parts of state (data)
