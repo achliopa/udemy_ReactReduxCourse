@@ -392,6 +392,22 @@ export default class BookList extends Component {
 
 * we turn a component to a container when is the most top level component that needs redux  state to show content. in our app book_list cares for books array and book_detail for the selected book
 
-### Lecture 43 - implementation of a Container Class
+### Lecture 43 - Implementation of a Container Class
 
+* we import booklist in app.js and use it in jsx
+* in book-list.js we import connect from 'react-redux' `import { connect } from 'react-redux';`
+* the connection is done via methods out of the class. 'mapStateToProps' takes state and maps it it into props. what it returns it is in the component props
+```
+function mapStateToProps(state) {
+	return {
+		books: state.books
+	};
+}
+```
+* what makes a component a container is the connect method which is passed in export as wrapper `export default connect(mapStateToProps)(BookList);`
+* when state changes props also change and rerender happens
+
+### Lecture 44 - Actions and Action Creators
+
+* we want to gain control over the list of books in the state
 * 
