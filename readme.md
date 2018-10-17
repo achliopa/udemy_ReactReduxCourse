@@ -537,3 +537,95 @@ function mapDispatchToProps(dispatch) {
 * we start again with boilerplate
 
 ### Lecture 53 - Component Setup
+
+* we npm install and npm start
+* we break our App into visual components aka React components
+	* app => searchbar, forecastlist
+	* forecastlist => chart
+* forecastlist andforecastlistitem will be in the same component
+* we start with the searchbar. component or container? ti will modify state dispatching actions so container. we add the sf in /containers/search_bar.js
+* we add a form in jsx and import the component in app.js
+
+### Lecture 54 - Controlled Components and binding Context
+
+* we will turn input into a controlled field with its value set by the component state
+* we initialize state in contructor and wire up input element
+```
+				<input 
+					placeholder="Get a five-day forecast in your favorite cities"
+					className="form-control"
+					vlaue={this.state.term}
+					onChange={this.onInputChange}
+				/>
+```
+* we implement the event handler as a separate function
+```
+	onInputChange(event) {
+		console.log(event.target.value);
+		this.setState({term: event.target.value})
+	}
+```
+*  browser complains. this is undefined in the handler. we need to bind it in constructor `this.onInputChange = this.onInputChange.bind(this);`
+* we dint have this error because we implemented handlers as arrow functions 
+
+### Lecture 55 - Form Elements in React
+
+* we click submit. input clears and page refresh. this is defualt html not react
+* we add an event handler to form to fix that preventing default behaviour `event.preventDefault();`
+
+### Lecture 56 - Working with APIs
+
+* we will use a cloud API to fetch weather data [openweather](http://openweathermap.org/forecast5)
+* the api call as stated in the site is `api.openweathermap.org/data/2.5/forecast?q={city name},{country code}&appid={APIKEY}`
+* it requires the api key. we select the free plan signup and get the key
+* we save the key in /actions/index.js
+
+### Lecture 57 - Introduction to Middleware
+
+* in the typical action flow cycle in redux app middleware adds one more step
+* when action creator returns the action to be consumed by the reducer middleware intercepts it and: lets the action pass, manipulates it or stops it altogether
+* the midddleware we will use is redux-promise. it will help us handle ajax requests from redux `npm install --save redux-promise`
+* in /src/index.js that is the base app sourcefile we import it `import ReduxPromise from 'redux-promise';`
+* in `const createStoreWithMiddleware = applyMiddleware()(createStore);` we pass ReduxPromise as middleware
+
+### Lecture 48 - Ajax Requests with Axios
+
+* we will dispatch an action with an action creator to make the ajax request using axios
+* in /actions/index.js we add the fetchWeather() action creator and export it.
+* instead of using string for ACTION TYPE we use a pram exported to be used by the reducer for filtering `export const FETCH_WEATHER = 'FETCH_WEATHER';`
+* in action object we pass the api call url which we build
+```
+import axios from 'axios';
+const API_KEY = '58a30bcba668373fcd73d7a1220943a4';
+const ROOT_URL = `http://api.openweathermap.org/data/2.5/forecast?appid=${API_KEY}`;
+
+export const FETCH_WEATHER = 'FETCH_WEATHER';
+
+export function fetchWeather(city) {
+	const url=`${ROOT_URL}&q=${city},gr`;
+	const request = axios.get(url);
+	return {
+		type: FETCH_WEATHER,
+		payload: request
+	};
+}
+```
+* we install axios for making ajax call
+
+### Lecture 59 - Redux-Promise in Practice
+
+* we want to call the action creator anytime the user submits the searchbar form
+* we follow the drill transformingthe component into container and binding the action using mapDispatchtoProps
+* we test it in browser . in dev tools network we see the reply
+
+### Lecture 60 - Redux-Promise Continued
+
+* we will add a reducer to handle fetchweather action, wire it to rootreducer and console.log the request passed as action payload and action object in reducer
+* the payload is the return of the axios.get() which is a promise
+* the action object contains the returned data of the promise
+* redux-promise worked. intercepted and handled the promise geting the data
+* redux-promise when it sees the promise stops it handles it and creates a new action passing in the data as payload. SWEET
+
+### Lecture 61 - Avoiding State Mutations in Reducers
+
+* 
