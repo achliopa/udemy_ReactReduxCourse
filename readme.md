@@ -407,7 +407,133 @@ function mapStateToProps(state) {
 * what makes a component a container is the connect method which is passed in export as wrapper `export default connect(mapStateToProps)(BookList);`
 * when state changes props also change and rerender happens
 
-### Lecture 44 - Actions and Action Creators
+### Lecture 45 - Actions and Action Creators
 
 * we want to gain control over the list of books in the state
-* 
+* changing redux app state is done through actions created by action creators.
+* the flow is:
+	* In React Component: User clicks Book2
+	* Event handler calls action creator
+	* Action Creator returns an action
+	```
+	function(return {
+		type: BOOK_SELECTED,
+		book: {title: 'book2'}
+	})
+	```
+	* action object is sent to all reducers
+	* reducer based on action (using switch statement) alters state based on the data paased in the action object apart from type
+	```
+	switch(action.type) {
+		case BOOK_SELECTED:
+			return action.book;
+		default:
+			//do nothing
+			return currentState;
+	}
+	```
+	* activeBook state property is set to the value returned by the reducer
+	* all reducers have processed the action and reutned new state. new state assembled. 
+	* containers are notified of the changes to the state.
+	* on notification containers rerender with new props
+
+### Lecture 46 - Binding Action Creators
+
+* in /actions/index.js we will write our action creators
+* our first action creator is `selectBook(book){}` 
+* we need to wire it to the react component. we import it in book-list and the bind from redux
+```
+import { selectBook } from '../actions/index';
+import { bindActionCreators } from 'redux';
+```
+* we also add a function to map dispatch to props (map action creator to a prop callback)
+```
+function mapDispatchToProps(dispatch) {
+	return bindActionCreators({ selectBook: selectBook }, dispatch)
+}
+```
+* we add this map to connect wrapper of container `export default connect(mapStateToProps, mapDispatchToProps)(BookList);`
+* dispatch funnels action creator of bind to all reducers
+* in map objeect key is the prop and value the action creator
+
+### Lecture 47 - Creating an Action
+
+* we have a dummy action creator bound to the container (book-list)
+* we add a clickevent handler to the li of booklist `onClick={() => this.props.selectBook(book)} `
+* we test and see the consolo log . binding works
+* our action creator should retturn a meaningful action abject
+```
+export function selectBook(book) {
+	// select book is an action creator needs to return an action
+	// object with a type property
+	return {
+		type: 'BOOK_SELECTED',
+		payload: book
+	};
+}
+```
+
+### Lecture 48 - Consuming Actions in Reducers
+
+* we need a new reducer for active book 'reducer_active_book.js'
+* reducers always get passed 2 params. state and action objects
+* state is not the app state. only the state thsi reducer is responsible for
+* essentially this means the piece of app state this reducer is responsible for
+* we need a base case to return the state unchanged
+* we need to handle the case that user does not select a book at start. state will be undefined which will throw an error. we default it in null
+* we sould always return a fresh object not manipulate state in teh reducer
+```
+export default function(state = null,action) {
+	switch(action.type) {
+		case 'BOOK_SELECTED':
+			return action.payload;	
+	}
+	
+	return state;
+}
+```
+* we add the reducer to the rootReducer and state
+
+### Lecture 49 - Consuming Actions in Reducers Continued
+
+* we will add bookdetailed view as a react component. it will be a container to consume app state /containers/book-detail.js
+
+### Lecture 50 - Conditional Rendering
+
+* we ll printout the title of the selected book. w euse the container props (mapped state) in JSX rendering
+* we get an error as state activebook is null at render time (no selection) . we defaulted it to null in reducer. this happens at bootup
+* we use component lifecycle methods or add if statement in render (conditional rendering)
+* we still get the dispatch error on click
+* we need to add dispatch as second argument in mapdispatchtoprops
+```
+// anything returned from this function will end up as props ont he BookList container
+function mapDispatchToProps(dispatch) {
+	// whenever selectBook is called, the result should be passed to all reducers
+	return bindActionCreators({ selectBook: selectBook }, dispatch)
+}
+```
+* we add a length ofd book in reducer
+
+### Lecture 51 -  Reducers and Actions Review
+
+* redux manages app state
+* app stat eis an object
+* app state is different from component state
+* reducers combined control state through actions
+* actions are created from action creators
+* action creators are dispatched from react components (containers)
+
+## Section 5 - Intermediate Redux: Middleware
+
+### Lecture 52 - App Overview and Planning
+
+* we will learn how to make async calls with redux
+* our app will be a weather forecoast app. we will search for a city. when we click the city we will submit the query toi a 3rd party API. when we get back data we will show the forecast for next five days as a chart
+* each search will add a row (city)
+* challenges:
+	* async api requests from redux
+	* charts: use 3rd party react component
+	* our app state changes over time a lot
+* we start again with boilerplate
+
+### Lecture 53 - Component Setup
