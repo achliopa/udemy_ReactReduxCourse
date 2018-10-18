@@ -644,4 +644,179 @@ export function fetchWeather(city) {
 
 ### Lecture 62 - Building a List Container
 
+* we need a new react component to render the list of cities. it will need access to redux state so its a container. we name its sf weather_list.js
+* for start we render a static table and import the component to app and add it to jsx
+* to fill the rows of the list table we need the values coming from the axios call currently in state
+* we need to bind state to props
+
+### Lecture 63 - Mapping Props to a Render Helper
+
+* props.weather coming from state contains an array of objects
+* each element has a city and a list. all we need is map them to jsx
+* we ll do it in a render helper which we call from map function `{this.props.weather.map(this.renderWeather)}`
+* our first version of renderhelper
+```
+	renderWeather(cityData) {
+		const name = cityData.city.name;
+
+		return (
+			<tr key={name}>
+				{name}
+			</tr>
+		);
+	}
+```
+
+### Lecture 64 - Adding Sparkline Charts
+
+* for charts we will use [react sparkline](https://github.com/borisyankov/react-sparklines)
+* using it is easy
+* weather.map will produce one row for each city. in it we have a list of days each day is an object with the measurements.
+* for charts we need to extract the measurements in their own array to pass to charts for rendering
+* first we assemble our data pulling out the arrays using map `const temps = cityData.list.map(weather => weather.main.temp)`
+* we install library `npm install --save react-sparklines` and impor it in WeatherList `import { Sparklines, SparklinesLine } from 'react-sparklines';` and use it 
+```
+					<Sparklines height={120} width={180} data={temps}>
+						<SparklinesLine color="red" />
+					</Sparklines>
+```
+
+### Lecture 65 - Making a Reusable Chart Component
+
+* we want to make a chart from pressure and humidity. to avoid writing the same component 3times well try to keep it DRY and make a reusable component chart.js
+* this component will hav eno state . it will just use the props passed to render so its a functional
+```
+export default ({data, color}) => {
+	return (
+		<div>
+			<Sparklines height={120} width={180} data={data}>
+				<SparklinesLine color={color} />
+			</Sparklines>
+		</div>
+	);
+}
+```
+
+### Lecture 66 - Labeling of Units 
+
+* we ll add a line in the chart showing the average and a number underneath each chart with the average for the 5 days
+* to calculate a numeric average we take data and calculate an average
+* we pass units as prop
+
+### lecture 67 - Google maps Integration
+
+* we need to add markup to style charts as the y differ in size
+* in style.css we add css. to fix svg sixzing `svg {height: 150px;}`
+* instead of showing the city name we will add googlmaps with the city centered
+* we ll make a separate reusable component for google maps rendering
+* in our boilerplate project main html googlemaps api is  included in markup
+* so at any time we can reference it in our code as `google.maps`
+* this breaks the pattern of adding functionality with components
+* now we add a lib that has no idea how to work with react
+* in ur render we add `<div ref="map"></div>` anytime in our code we reference this.refs.map we will reference this element so its a js hook
+* the component code is 
+```
+class GoogleMap extends Component {
+	componentDidMount() {
+		new google.maps.Map(this.refs.map, {
+			zoom: 12,
+			lat: this.props.lat,
+			lng: this.props.lon
+		})
+	}
+	render() {
+		return (
+			<div ref="map"></div>
+		);
+	}
+}
+```
+* we use a component lifecycle method to add the map when the component renders on screen. this is because the jsx reference will not exist in html before (aka dynamic rendering)
+
+### Lecture 68 - Google Maps Integration Continued
+
+* the previous trick is a way to integrate react with 3rd party non react libs
+* we add the component in weatherlist
+* city object wwe get from openweather contains coordinates which we pass a sprops
+* we style the map with css
+
+## Section 6 - React Router + Redux Form
+
+### Lecture 70 - App Overview and Goals
+
+* we need to add post requests to remote servers and add routing in our app (multiple screens) 
+* load relevant data from backend depending on users page
+* the app we will build to explore these topics
+* we willbuild a simple blogging application , typical RESTful routes
+* no styling 
+* the index view will show all our posts '/'. when we click on post we will see the show page 'posts/<id>'
+* we will have a 'posts/new' for adding a new post
+* we again use the boilerplate project as base and name it /postApp
+
+### Lecture 71 - Posts API
+
+* we want to save and retrtieve posts in a remote API (backend)
+* the BlogPOstAPI is implemented and will connect to it with AJAX
+* we go to [dtephens redux blog](https://reduxblog.herokuapp.com) there we can see the API description
+* we use postman to test the api
+* we create anew post eith a POST req to `http://reduxblog.herokuapp.com/api/posts` with raw body (Json)
+```
+{
+  "title": "Hi!",
+  "categories": "Computer, Friends",
+  "content": "Blog post content"
+}
+```
+* we need to add a unique key in our request `http://reduxblog.herokuapp.com/api/posts?key=sakis`
+* we get back the id
+```
+{
+    "id": 291418,
+    "title": "Hi!",
+    "categories": "Computer, Friends",
+    "content": "Blog post content"
+}
+```
+* we fetch with GET to /api/posts/291418?key=sakis
+
+### Lecture 73  - Installing React Router 
+
+* we install react-router for webapp (browser) `npm install --save react-router-dom@4.2.2`
+* we use react-router to add pages to our singlepage app without refreshing.
+
+### Lecture 74 - What React Router Does
+
+* in traditional apps when we click we get a new webpage (new html)
+* in react (fronetnd rendering) we have all bundled up and sent upfront. html is sent upfront and is same. js rerenders parts. in render time the flow is:
+	* user changes the url
+	* History gets notified that user changed the URL (new one passed)
+	* ReactRouter gets the new URL
+	* ReactRouter updates the react components shown on screen, depending oin url
+	* React gets the components it needs to render
+	* Content is shown on screen
+
+### Lecture 75 - The Basics of React Router
+
+* we launch our boilerplate project
+* we open index.js
+* we want to add 2 routes to router and change content based on the route user selects
+* we add 2 mockup components for testing
+* we import `import { BrowserRouter, Route } from 'react-router-dom';` 
+* BrowserRoute listens to browser route for new routes from user
+* Route is the core compoonent as conditionaly renders a component inside another component
+* BRowserRoute talks to the History lib
+* browserouter wraps routes
+* route component gets 2 props: path (relative url) and compoennt (the react component to render)
+```
+    <BrowserRouter>
+    	<div>
+    		<Route path="/hello" component={Hello} />
+    		<Route path="/goodbye" component={Goodbye} />
+    	</div>
+    </BrowserRouter>
+```
+* we can mix react components with router
+
+### Lecture 76 - Route Design
+
 * 
