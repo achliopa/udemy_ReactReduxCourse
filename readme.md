@@ -628,4 +628,20 @@ export function fetchWeather(city) {
 
 ### Lecture 61 - Avoiding State Mutations in Reducers
 
+* we want to store action.payload.data.list containing the forecasts
+* in our view we will have multiple cities forecasts so in our state we will store a list
+* our initial state becomes []
+* we add a switch statement in reducer
+```
+	switch(action.type) {
+		case FETCH_WEATHER:
+			return [action.payload.data];
+```
+* we return an array because we expect multiple cities in state
+* when user clicks in another city the array will overwrite. we arr not appending to the array
+* the easy way `return state.push(action.payload.data)`manipulates state an is an ANTIPATTERN
+* we need to return a new array (new state) `return state.concat([action.payload.data])` in ES6 style it is writtern `return [action.payload.data, ...state];` as a flattened array
+
+### Lecture 62 - Building a List Container
+
 * 
