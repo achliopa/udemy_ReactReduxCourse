@@ -888,3 +888,131 @@ export function fetchPosts() {
 		});
 	}
 ```
+
+### Lecture 83 - Creating new Posts
+
+* we want to be able to add posts without postman
+* our workflow is:
+	* scaffold Postsnew component
+	* Add route configuration
+	* add navigation between index and new
+	* add form to PostsNew
+	* Make action creator to save post
+* we add the new component in /components/posts_new.js
+* we import it in index.js and add it inside the BrowserRoute UNDER the '/'
+* this wont work as '/' is more general so router renders it when visiting 'posts/new'
+
+### Lecture 84 - A React Router Gotcha
+
+* react route matches lazily so if a path satisfies the condition of URI it renders. its like using a wildacrd after each route path prop
+* we can fix that puting the most specific routes on top and wrapping routes in <Switch></id>Switch> inside browserrouter
+
+### Lecture 85 - Navigation with the Link Component
+
+* we will add navigation between routes using the lInk component (much like <a> tag)
+* we add it to index page jsx
+```
+				<div className="text-xs-right">
+					<Link className="btn btn-primary" to="/posts/new">
+						Add a Post
+					</Link>
+```
+* navigation is done with 'to' prop where we spec the path
+* Link is behind the scene an anchor tag. link prevents browser to do normal work
+
+### Lecture 86 - Redux Form
+
+* [Redux form](https://redux-form.com) is a good way of building form that integrate well with Redux
+* we install it as an npm package `npm install --save redux-form@6.6.3`
+* redux-form uses the app state so we add it to the rootReducer
+* what we gain is ease of use (save on action creators)
+* we import it in global reducer file `import { reducer as formReducer } from 'redux-form'; ` and add it as form piece of state `form: formReducer`
+
+### Lecture 87 - Setting Up Redux Form
+
+* using redux-form workflow:
+	* identify different pieces of form state
+	* make one Field component pewr piece of state
+	* user changes a Field input
+	* redux form automatically handles changes
+	* we validate inputs and handleform submittal
+* in our prroject we have 3 pieces of state title, categories and content
+* in postsnew component we import  Field and reduxForm from redux-form
+* reduxForm is a method similar to connect() method from react-redux it enables componet to talk to redux store. the way to use it is similar
+```
+export default reduxForm({
+	from: 'PostsNewForm'
+})(PostsNew);
+```
+* the config object at least takes the name of the form (to allow muliple forms in a page)
+* using same name for different components it cause a merge of form state for both
+
+### Lecture 88 - The Field Component
+
+* the name prop of field tells what piece of form state it represents
+* in Field we add a component prop where we pass a method
+* Field component does not know how to render on screen only how to interact with redux form.
+* with the component method we pass in a JSX blob helping it to figure out how it will render on screen is like a render() method
+* in the render() method we add JSX and  html form fields. we need to make a connection between this element and the Field component that is responsible for handling each events
+* field jsx
+```
+<form >
+					<Field 
+						name="title"
+						component={this.renderTitleField}
+					/>
+				</form>!
+```
+* render() method
+```
+	renderTitleField(field) {
+		return (
+			<div>
+				<input 
+					{...field.input}
+				/>
+			</div>
+		);
+	}
+```
+* the {...field.input} says that all field.input tags to be passed as props to the <input /> tag
+* in input we can add the styling
+
+### Lecture 89 - Generalizing Fields
+
+* we test and it works
+* to style we add markup in render()
+* to add more fields we add more field components
+* we see  render() method content repetition so we try to keep it dry
+* we dont have to add more arguments in the common render method. we can add them to the Field property and they will be passes with field input object
+* it becomes very easy to add more fields
+
+### Lecture 90 - Validating Forms
+
+* we need to add some validation. doent submit the form and throw error message if a field is empty
+* we add a validate() method out of the compoennt and also add it in the config object of reuxForm so that it is called on submit
+* valitate() takes an input objet 'values' which contains all the vlaues the user has entered in the form pieces
+* to validate it returns an error object to notify on errors
+```
+function validate(values) {
+// console.log(values) ->{ title: 'dsda', categories: 'dsds', content: 'dsdsds'}
+const errors = {}
+// validate inpouts of values
+if(!values.title  || values.title.length < 3) {
+	errors.title = "Enter a title"
+}
+if(!values.categories) {
+	errors.categories = "Enter a category"
+}
+if(!values.content) {
+	errors.content = "Enter some content"
+}
+// if errors is empty, the form is fine to submit
+// if error has any properties, redux form assumes its invalid
+return errors;
+}
+```
+
+### Lecture 91 - Showing Errors to Users
+
+* 
