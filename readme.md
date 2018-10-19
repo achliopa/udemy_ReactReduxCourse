@@ -1,4 +1,4 @@
-# Udemy Course - Modern React with Redux by Stephen Grider
+s# Udemy Course - Modern React with Redux by Stephen Grider
 
 * [Course](https://www.udemy.com/react-redux/)
 * [Repository](https://github.com/StephenGrider/ReduxCasts)
@@ -1015,4 +1015,55 @@ return errors;
 
 ### Lecture 91 - Showing Errors to Users
 
-* 
+* we ll display validation message
+* the error object is available at field component render method as `{field.meta.error}`
+* to which atribute of error object we refer depends on the name pro pf the Field
+
+### Lecture 92 - Handling Form Submittal
+
+* we add a button for submitting a form in <form> `<button type="submit" className="btn btn-primary">Submit</button>`
+* we see that errors appear right away when we render the form
+* we want to handle form submittal in redux-form
+* till now we have seen how redux-form handles the state of the form
+* it does not handle form submittal
+* we have wired up redux-form to the Postnew component. this extends the Postnew adding new props. 'handleSubmit(callback())' method is one of them. 
+* handleSubmit takes care that all redux-form conditions are satisfied and when it resolves its ready to submit itr call our callback to handle submit
+```
+render() {
+		const { handleSubmit } = this.props;
+		return (
+				<form  onSubmit={ handleSubmit(this.onSubmit.bind(this))}>
+				...........
+```
+* we pass this.onSubmit binding this as the callaback will be called outside the component context
+* our callback implementation gets not event like usual but values as argument
+```
+	onSubmit(values) {
+		console.log(values);
+	}
+```
+
+### Lecture 93 - Form and Field States
+
+* when we render form we see the errors
+* we want to show errors when user types and then tabs out
+* there are 3 states of the form (field level): 
+	* pristine: first render
+	* touched: user focused input and focused out
+	* invalid: got errors
+* in Field component render method we show meta.error regardless of state
+* we add a terniary statemtn `{field.meta.touched? field.meta.error : ''}` checking for touched (state property)
+
+### Lecture 94 - Conditional Styling
+
+* we add styling based on error. we use build0in bootstrap
+* to make text appear red we add class "text-help"
+* to add red border we add class "has-danger"
+* we need to make border color conditional when field is touched and there is an error
+* we do it by making the css class string using string interpolation ES6 style and conditional logic `const className=`form-group ${field.meta.touched && field.meta.error ? 'has-danger' : ''}``
+* to do 2 level deep object destucturing we do `const {meta: { toched, error }} = field`
+
+### Lecture 95 - More on Navigation
+
+* we ll add a button to go back to post list. we used Link tag to navigate between routes
+* we style in stylesheet links are seelcted in css as anchor tags
