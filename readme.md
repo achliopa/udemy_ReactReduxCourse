@@ -819,4 +819,72 @@ class GoogleMap extends Component {
 
 ### Lecture 76 - Route Design
 
-* 
+* our app will have the following routes:
+	* root route '/' to show a list of posts and an add post button `<Route path="/" component={PostIndex} />`
+	* view post route '/posts/<id>' to show a specific post `<Route path-"posts/:id" component={PostsShow} />`
+	* add post route '/posts/new' to show the add post form `<Route path-"posts/new" component={PostsNew} />`
+
+### Lecture 77 - Our First Route Definition
+
+* we ll start with the first screen for root route '/' implementing a barebone react component PostsIndex in /src/components/posts_index.js
+* we cleanup index.js. delete App import and import our new component and add it to BrowserRouter as ` <Route path="/" component={PostsIndex} />`
+* we test it in breowser
+
+### Lecture 78 - State as an Object
+
+* following the state pieces approach from booksApp we will end up with posts (array) and activePost (object) state properties
+* the activePost property is important for the PostShow page
+* the url a user visits is closely related to app state. when we visits url we need to feed with new data and rerender the page
+* the id user passes plays the same role as the activePost
+* we dont need activeState. we will use post araay index as activePost
+* when user visits posts/:id we will use the id so that component will render the ite, from posts array in state
+* it makes sense to store the list of posts in an object where the key will be the id and the value the object. in that way it will be easier to fetch apost among all the posts. in an array we would have to search in the array
+
+### Lecture 79 - Back to Redux - Index Action
+
+* we implement the first action creator in /actions/index.js to fetch a list of posts and feed it in the PostsIndex component
+* we will use axios and redux -promise like in our previous app to make api calls from our actions
+* we wire up redux-promise as a middleware in our redux app
+* we import axios in the action creator file
+```
+export function fetchPosts() {
+	const request = axios.get(`${ROOT_URL}/posts${API_KEY}`);
+	return {
+		type: FETCH_POSTS,
+		payload: request
+	};
+}
+```
+
+### Lecture 80 - Implementing Posts Reducer
+
+* our goal in the reducer is to return an object manipulating the array that gets returned by the API reply
+* lodash has a helper function mapKeys. we pass the array and give the name of the param that it will use as key to build the object of key value pairs for each array element `return _.mapKey(action.payload.data, 'id')`
+
+### Lecture 81 - Action Creator Shortcuts
+
+* we convert PostsIndex into a container  `export default connect(null, { fetchPosts })(PostsIndex);`
+* the above systax is equivalent with using mapDispatchToProps
+* we will call action creator in component lifecycle method componentDidMount)( when component first renders on screen and only once)
+* we test in browser and confirm at XHR requests in network tab of chrome dev tools that ajax request gets fired
+
+### Lecture 82 - Rendering a List of Posts
+
+* we add some code to show a list of posts to the user
+* we add some posts with postman. so it gets populated
+* now our app when rendering fires the api req and result is coming back . we test in devtools
+* we add the state to the index props using mapStatetoprops to use the props object
+* we add a console log to render() it appears 2 times one empty and one full
+* didmount is the first time where we go and fetch data (empty) then data pass to state to props causing rerender (we got data)
+* to render the list we add a render helper using the lodash map to map through the object with id keys
+```
+	renderPosts() {
+		return _.map(this.props.posts, post => {
+			return (
+				<li className="list-group-item" key={post.id}>
+					{post.title}
+				</li>
+			);
+		});
+	}
+```
