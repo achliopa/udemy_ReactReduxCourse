@@ -1067,3 +1067,94 @@ render() {
 
 * we ll add a button to go back to post list. we used Link tag to navigate between routes
 * we style in stylesheet links are seelcted in css as anchor tags
+
+### Lecture 96 - Crete Post Action Creator
+
+* on submit eevent handler will be called with an object called values
+* we want to post them to the backend
+* we need to call an action creator to call an axios req and use redux-promise middleware to extract reply
+```
+export function createPost(values) {
+	const request = axios.post(`${ROOT_URL}/posts${API_KEY}`,values)
+
+	return {
+		type: CREATE_POST,
+		payload: request
+	}
+}
+```
+* we make PostsNew a container and add the action binding (dispatch)
+* reduxForm has been used like connect as a binding wrapper
+* we use reduxForm as external wrapper and connect as internal
+```
+export default reduxForm({
+	validate,
+	form: 'PostsNewForm'
+})(
+	connect(null,{ createPost})(PostsNew)
+);
+```
+* we add it in the handler test it in broswer and see the api reply in devtools=> network > XHR
+```
+	onSubmit(values) {
+		this.props.createPost(values);
+	}
+```
+* we see two requests the foirst is OPTIONS type. this si a CORS request
+* second is POST and reply is ok
+* we want redirection to list of posts after submit
+
+### Lecture 97 - Navigation through Callbacks
+
+* the flow we want:
+	* user submits the form
+	* validate form
+	* call onSUbmit
+	* call an action creator to make API request
+	* wait... (async call)
+	* after success navigate the user to post list
+* Link tag wont do the trick (requires click). we want programatic navigation
+* for programmatic navigation redux-route uses props passed to the component. these are passed automatically
+* we make use of props.history for programatic navigation. we do it with `this.props.history.push('/<path>')`
+* to make sure it gets called if post request finishes successfuly we pass it as secont argument to the action as callback
+```
+		this.props.createPost(values, ()  => {
+			this.props.history.push('/');
+		});
+```
+* in the action creator we call the callback inside the promise resolve method .then()
+```
+	const request = axios.post(`${ROOT_URL}/posts${API_KEY}`,values)
+		.then(() => callback())
+
+```
+
+### Lecture 98 - The Posts Show Component
+
+* show post details in a separate view
+* we add new component file posts_show.js make it a class component and add boilerplate code. we export it and import it in index.js and add it in routes as `<Route path="/posts/:id" component={PostsShow} />` we use a windcard as :id. whatever we pass in as :id in path will pass in PostsShow as a prop with name id
+* we put it after posts/new in routes order as its more generic.
+
+### Lecture 99 - Receiving new Posts
+
+* putting together the show page has to do with how we load our data in the application
+* if user visits root route fiirst we call the fetch posts action creator to load our list of posts. then our posts state will contain all posts
+* if user visits our app manually directly in a show page say /posts/2 ideally we should fetch only that post.
+* as user can land in nay page postShow should fetch its own data. it should not rely that fetch post has been called and the list of posts in app state is full
+* so we add a new action creator to fetch an individual post `const request = axios.get(`${ROOT_URL}/posts/${id}${API_KEY}`);`
+* we add the actiont o reducer . what we want to do in the reducer is to make sure the posts list object has the post with the given id in it (to use it for rendering) in ES5 we would do
+```
+const post = action.payload.data
+const neeState = { ...state };
+newState[post.id] = post;
+return newState;
+```
+* in ES6
+```
+return { ...state, [action.payload.data.id]: action.payload.data };
+```
+* we are doing key interpolation
+
+### Lecture 100 - Selecting from OwnProps
+
+* 
