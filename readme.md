@@ -1157,4 +1157,60 @@ return { ...state, [action.payload.data.id]: action.payload.data };
 
 ### Lecture 100 - Selecting from OwnProps
 
-* 
+* we add the action creator in PostsShow component and wire the action creator
+* we put the action creator in componentDidmount lifecycle method. so we fetch the value in first render and show it in render() using mapstatetoprops to get post from state
+```
+		const { id } = this.props.match.params;
+		this.props.fetchPost(id);
+```
+* we use this.props.match.params.id to get id from :id passes in path. match.params will contain all wildcards passed in teh route url
+* we want to pass only the post of id into the props. in mapStateToProps we can pass a second argument after state called ownProps. it is the props object used by the component
+* we do this because we are outside the component so 
+```
+function mapStateToProps({posts}) {
+	post: posts[this.props.match.params.id]
+}
+```
+* wont work
+* we use 
+```
+function mapStateToProps({posts}, ownProps) {
+	post: posts[ownprops.match.params.id]
+}
+```
+* instead
+
+### Lecture 101 - Data Dependencies
+
+* we fill jsx in render using prop
+* we get an error as we try to use the post prop before it is available as render() is called immediatley and then when state changes. w e need conditional rendering
+
+### Lecture 102 - Caching Records
+
+* we add a Link to rooth route
+* we need to add the ability to click on a list item and go to a specific post wraping it with a lInk tag
+* in this case we have already th epost list but we refetch an individual post from backend.
+this is unecessary
+* if we dont want to eagerly fetch posts we add conditional logic in compponentdidmount() in postsShowwhere we fetch data
+```
+		if(!this.props.post) {
+			const { id } = this.props.match.params;
+			this.props.fetchPost(id);
+		}
+```
+* when we fetch an individual post and then go back to the list. we see this item in list and then whjen fetch resolves we see all
+
+### Lecture 103 - Deleting a Post
+
+* we add a delete post button in postshow page
+* we add an onclick handler trhre we call an action passinf the id
+* the id we get from route path params not from the state prop id. (dont like it)
+* we implement the action creator. in the action object we pass only the id to reducer
+* we need to reroute to index after deleting so we pass a callback to programmaticaly reroute
+
+### Lecture 104 -  Wrapup
+
+* we rely on the fetch_posts to get a fresh list of posts after we delete it
+* so we move the full list back and forth
+* in the reducer we manipulate state to remove without refetching
+* in tehr educer we remote the post from state by id with `eturn _.omit(state, action.payload)`.. it returns a new state rejectingthe post by id. this makes app more smooth. as it removes the glitch
