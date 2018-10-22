@@ -1214,3 +1214,284 @@ this is unecessary
 * so we move the full list back and forth
 * in the reducer we manipulate state to remove without refetching
 * in tehr educer we remote the post from state by id with `eturn _.omit(state, action.payload)`.. it returns a new state rejectingthe post by id. this makes app more smooth. as it removes the glitch
+
+## Section 7 - Bonus: RallyCoding
+
+### Lecture 106 - Basics of Redux Thunk
+
+* redux is used to maintain control on app state
+* the flow: component -> action creator -> action -> middleware -reducer -state->component works wee for syncronous operations
+* when we fetch data from other systems using async calls there is problem
+* we use redux thunk then. it gives us control over the dispatch method
+* dispatch maintains state over the 3 last stems of the flow after action is created
+* its a funnel collection actions and passing them to reducers
+* in plain redux it expects the action creator to return an action
+* redux thunk allows action creator to return a function passing in dispatch method. 
+* in the return method we can wait our async return request to resolve and THEN to dispatch an action... so we are interceptiung the  dispatch method
+```
+export function  fetchUsers() {
+	const request = axios.get('path');
+
+	return (dispatch) => {
+		request.then(({data}) => {
+			dispatch({ type: FETCH_USERS, payload: data})
+			})
+	}
+}
+```
+* ReduxThubk is a redux middleware and sees the action creator returns a method. seizes control and invokes the method.
+* when all is resolved the dispatch is called and the flow continues
+
+### Lecture 107 - Combining Redux and Firebase
+
+* there is a lib reactfire to inject firebase data into components. this is not ok for redux
+* a BAD ARCHITECTURE: firebase <-> reactfire <->React<->Redux (2 state storages)
+* a GOOD ARCHITECTURE: React<->Redux<->Firebase (REDUX contols state)
+* Firebase flow: firebase works with data references. when data change it emits events (if we choose to subscribe)
+* the solution if we choose to subscribe to firebase data? make an action creator which will listen for firebase ref events. so anytime there is a change the action creator will change the redux stte keeping it in sync
+* a demo impleemntation of such a action creator using thunk
+```
+import Firebase from 'firebase';
+const Posts = new Firebase('URL');
+export function fetchPosts() {
+	return dispatch => {
+		Posts.on('value', snapshot => {
+			dispatch({
+				type: FETCH_POSTS,
+				payload: snapshot.val()
+				});
+			})
+	};
+}
+
+export function deletePost(key) {
+	return dispatch => Posts.child(key).remove();
+}
+```
+* when we remove in firebase we get a change event to where we have subsribed with fetch action
+
+### Lecture 108 - Dynamic Forms with Redux Form
+
+* redux form has an issue. render mthod has a lot of repetiotion. same the validate() method
+* to refactor and make it maintenable
+* we import lodash lib
+* in export we have our form params definition which dictrates athe whole form (one field per param). we set it as global const along with params
+```
+const FIELDS = {
+	title: {
+		type: "input",
+		label: "Title for Post"
+	},
+	categories: {
+		type: "input",
+		label: "Enter some categories for this post"
+	},
+	content: {
+		type: "textarea",
+		label: "Post Contents"
+	}
+};
+```
+* then we use it
+```
+export default reduxForm({
+	form: 'PostNew',
+	field: _.keys(FIELDS),
+	validate
+})(PostNew)
+```
+* we can refactor the validate()
+```
+function validate(values) {
+	const errors = {};
+
+	_.each(FIELDS, (type,field) => {
+		if(!values[field]) {
+			errors[field] = 'dsds'
+		}
+		})
+}
+```
+
+* refactor the render in a helper method
+```
+renderField(fieldConfig, field) {
+	const fieldHelper = this.props.fields[field];
+
+	return (
+	<div>
+		<label for="">
+		<input type="text"></label>
+		<div></div>
+	</div>
+	);
+}
+```
+
+### Lecture 109 - Logicles Components with Reselect
+
+* reselct is a support lib for redux. 
+* is used to  compute derived or calculated state for redux projects
+* we showcase it building a small app where we fetch data from a 3rd party API and show them in a list. we can select them with a checkbox. when we select them they are added to alist of selected posts.
+* in a plain react-redux app we would have 2 reducers one for posts to fetch the posts and keep the list of posts in state and one for selected posts to keep the selected posts array in state. their compination would give the app state
+* a bad approach would use a selected post list component
+```
+const selectedPosts = .filter(props.posts, post=> .contains(props.selectedPostsIds,post.id));
+```
+* this approach is bad
+	* requires the react component to have knowledgeof underlying data structs
+	* logic to figure out the currently selected post data is not reusable in other components)
+* with reselect lib we combine the 2 reducers ina reselect selector and the we feed only data we care (selected items) in a selected post list
+* the reselect selector takes 2 pieces of state combines them , calculates and spits data we care about producing a derived(calculated) piece of state
+* our exampe code of selected posts list component (a selector)
+```
+// reselect selector
+// takes out a list of posts and post ids and picks out the selected posts
+import { createSelector } from 'reselect';
+import _ from 'lodash';
+
+// create select functions to pick off the pieces of state we care about for the calculation
+const postsSelector = state => state.posts;
+const selectedPostsSelector = state => state.selectedPostIds
+
+//combine them
+const getPosts = (posts,selectedPostIds) => {
+	const selectedPosts = _.filter(
+		posts,
+		post => _.contains(selectedPostIds, post.id)
+	);
+
+	return selectedPosts;
+};
+
+export default createSelector(
+	postsSelector, // pick of a piece of state
+	selectedPostsSelector, // pick of a piece of state
+	getPosts // last argument is the function that has our select logic
+);
+```
+* the preliminary select functions will run twhen state changes
+* their new state will be fed to the last combine method
+* we implement a react component ot use the selector
+```
+import React from 'react';
+import { connect } from 'react-redux';
+import SelectedPostSelector from '../selectors/selected_posts'
+
+const SelectedPostList = (props) => {
+	return (
+		<ul className="list-group">
+			{
+				props.posts.map(post = >{
+						return <li className="list-group-item" key={post.id}>{post.title}</li>
+					})
+			}
+		</ul>
+	);
+};
+
+const mapStateToProps = (state) => {
+	return {
+		posts: SelectedPostSelector(state)
+	}
+}
+
+export default connect(mapStateToProps)(SelectedPostList);
+```
+* props.posts is what is returned by the selector
+
+### Lecture 110 - Data Loading methods with Redux
+
+* how to initiate data loading in a react-redux app
+* normally we make an action creator which uses axios to hit a backend server API. get data in the response and pass them to reducer
+* there are various ways to call action creator
+* for an initial data loading we use usually component lifecycle methods 'componentWillMount' to call action creator
+* this is not the best pattern. if we want to reuse the component we cant as it is bount to the redux action creator and specific state piece
+* we can use React-routers onEnter lifecycle method which is attached to the route not the component. it is uses as a a prop callback
+* we just have to make the piece of state in our reusable react component a prop param
+* we usually put the onEnter callback in a separate routes folder file named toute_callbacks.js
+
+### Lecture 111 - Animation of React Components
+
+* react is good at animating objects on screen
+* add css transitions
+* ReactCSSTransitionGroup is a component like any other React component. we import it and add it to JSX
+* we wrap a list of items. so their addition or removal can be animated
+* when we add an item this componet gives our items a class '<transition-name>-enter' for initial styling
+* after initial render it applies the class '<transition-name>-enter-active' to apply a transition
+* to use it we import it `import ReactCSSTransitionGroup from 'react-addons-css-transition-groupo'`
+* we wrap ou items and define transition options as an obect an not inline
+```
+render(
+	const transitionOptions = {
+		transitionName: 'fade',
+		transitionEnterTimeout: 500,
+		transitionLeaveTeimeout: 500
+	}
+
+	<ReactCSSTransitionGroup {...transitionOptions}>
+	{this.renderList()}
+	</transition-name>ReactCSSTransitionGroup>
+);
+```
+* in css we style the generated classes "fade-enter" etc
+```
+.fade-enter {
+	right: 100px;
+
+}
+
+.fade-enter-active {
+	right: 0px;
+	transition: .5s ease-in all
+}
+```
+* we can add transform opacity etc
+
+### Lecture 112 - The Best Way to Store Redux Data
+
+* the first idea when we think how to store collections of structs (objects) with id in state is the array
+* we can used an object based storeage of key value pairs
+* common operation  - read a record. object = simplification
+	* array: 
+	```
+		const postIdToFind = 34
+		state.posts.find(post => 
+		post.id === postIdToFind)
+	```
+	* object:
+	```
+	const postIdToFind = 34
+	state.posts[postIdToFind]
+	``` 
+* common operation - update record. both return new object
+	* array:
+		```
+		const newPost = {id:34}
+		newState = state.posts.filter(post=>post.id !== id)
+		return [...newState,newPost]
+		```
+	* object
+	```
+	const newPost = {id:34}
+	return { ...state, [newPostId]: newPost}
+	```
+* common operation - delete record. both return new object
+	* array:
+		```
+		const postToDelete = 34
+		return state.posts.filter(post=>post.id !== postToDelete)
+		```
+	* object
+	```
+	const postToDelete = {id:34}
+	return _.omit(state, postToDelete)
+	```
+* to transform an array to a key object struct `_.mapKeys(payload, 'id')`
+
+### Lecture 113 - Four Most Common Errors with React and Redux
+
+* 1: do not export or import  the component: we try to render undefined ... error: react: createElelemtn undefined
+* 2: omit brackets wjen import type def in reducer. no error at all just action not executed (goes to default return the reducer) . use a console log
+* 3: in actioncreator in dispatch callback (using reduc0thunk) we attempt to access a param of the axios response that does not exist. we get cannot read property of undefined (uncaught in psomise) an error occured in a apromise
+* 4: yo map through a response and get a specific property we can use `_.map(response.data, 'propertyname'`. if we return as payload from thunk dispatch the whole object we get Uncaught in promise error: objects are note valid as a react child...
